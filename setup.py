@@ -18,20 +18,14 @@ from setuptools import setup
 from codecs import open
 import os
 
+
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
-
-def exec_file(path_segments, name):
-    result = {}
-    code = read_file(path_segments)
-    lines = [line for line in code.split('\n') if line.startswith(name)]
-    exec("\n".join(lines), result)
-    return result[name]
 
 
 setup(
     name="synapse_ldap_password_provider",
-    version=exec_file(("synapse_ldap_password_provider.py",), "__version__"),
+    version="1",
     py_modules=["synapse_ldap_password_provider"],
     description="LDAP3 password provider for Synapse",
     install_requires=[

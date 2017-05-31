@@ -3,7 +3,7 @@ from synapse_ldap_password_provider import LDAPPasswordProvider
 
 
 def create_auth_provider(port, account_handler):
-    "Creates an LdapAuthProvider from an LDAP server and a mock account_handler"
+    "Creates an LDAPPasswordProvider from an LDAP server and a mock account_handler"
 
     config = LDAPPasswordProvider.parse_config({
         "enabled": True,
@@ -16,4 +16,4 @@ def create_auth_provider(port, account_handler):
         },
     })
 
-    return LdapAuthProvider(config, account_handler=account_handler)
+    return LDAPPasswordProvider(config, account_handler=account_handler)
