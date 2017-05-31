@@ -5,6 +5,11 @@ Synapse LDAP pasword provider
 - Allows to map mail and msisdn (phone) from LDAP (check usage note!)
 - Allows implementing independent account lockout policy, to prevent Active Directory users locking by external bruteforce attack.
 
+Travis-CI Build Status
+======================
+.. image:: https://travis-ci.org/slipeer/synapse-ldap-password-provider.svg?branch=master
+    :target: https://travis-ci.org/slipeer/synapse-ldap-password-provider
+
 Installation
 ------------
 
@@ -51,7 +56,7 @@ Usage note
 ----------
 
 Use attributes ``mail`` and ``msisdn`` from the LDAP only if your identity server is also integrated with LDAP and looks for 3pd in these attributes.
-Otherwise it will not work properly. If you seach identity server with LDAP integration you can try my synapse fork https://github.com/slipeer/sydent
+Otherwise it will not work properly. If you seach identity server with LDAP integration you can try my sydent fork https://github.com/slipeer/sydent
 
 Account Lockout Policy
 ----------------------
