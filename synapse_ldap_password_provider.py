@@ -28,6 +28,14 @@ try:
         LDAP_AUTH_SIMPLE = ldap3.AUTH_SIMPLE
     except AttributeError:
         LDAP_AUTH_SIMPLE = ldap3.SIMPLE
+
+    try:
+        ldap3.set_config_parameter('DEFAULT_ENCODING', 'UTF-8')
+    except AttributeError:
+        pass
+    except ldap3.core.exceptions.LDAPConfigurationParameterError:
+        pass
+
 except ImportError:
     ldap3 = None
     pass
