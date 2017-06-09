@@ -13,6 +13,7 @@ Travis-CI Build Status
 Installation
 ------------
 
+- Via python's package manager: `pip install synapse-ldap-password-provider`
 - Via python's package manager from git: `pip install https://github.com/slipeer/synapse-ldap-password-provider/tarball/master`
 
 Usage
@@ -60,15 +61,14 @@ Otherwise it will not work properly. If you seach identity server with LDAP inte
 
 Account Lockout Policy
 ----------------------
-If you do not want your internal users to be blocked from outside
- by scrambling passwords through this service, then you need
- implement a more rigid account lockout policy then in yor LDAP server
+If you do not want your internal users to be blocked from outside by scrambling passwords through this service, then you need 
+implement a more rigid account lockout policy then on your LDAP server.
 
 
 Troubleshooting and Debugging
 -----------------------------
 
-``matrix-synapse-ldap3`` logging is included in the Synapse homeserver log
+``synapse-ldap-password-provider`` logging is included in the Synapse homeserver log
 (typically ``homeserver.log``). The LDAP plugin log level can be increased to
 ``DEBUG`` for troubleshooting and debugging by making the following modifications
 to your Synapse server's logging configuration file:

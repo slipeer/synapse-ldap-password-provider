@@ -28,6 +28,11 @@ setup(
     version="1",
     py_modules=["synapse_ldap_password_provider"],
     description="LDAP3 password provider for Synapse",
+    url="https://github.com/slipeer/synapse-ldap-password-provider",
+    download_url="https://github.com/"
+        "slipeer/synapse-ldap-password-provider/archive/1.0.tar.gz",
+    author="Slipeer",
+    author_email="slipeer@gmail.com",
     install_requires=[
         "Twisted>=15.1.0",
         "ldap3>=2",
