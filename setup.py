@@ -30,7 +30,7 @@ setup(
     description="LDAP3 password provider for Synapse",
     install_requires=[
         "Twisted>=15.1.0",
-        "ldap3",
+        "ldap3>=2",
         "service_identity",
     ],
     long_description=read("README.rst"),
