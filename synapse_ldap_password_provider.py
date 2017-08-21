@@ -81,6 +81,7 @@ class LDAPPasswordProvider(object):
         """
         if not password:
             defer.returnValue(False)
+        user_id = user_id.lower()
         localpart = user_id.split(":", 1)[0][1:]
 
         now = time.time()
@@ -222,7 +223,7 @@ class LDAPPasswordProvider(object):
                         validated_at = self.account_handler.hs.get_clock().time_msec()
                         user_id_by_threepid = yield store.get_user_id_by_threepid(
                             'email',
-                            mail
+                            mail.lower()
                         )
                         # add email only if not exists
                         if not user_id_by_threepid:
@@ -238,7 +239,7 @@ class LDAPPasswordProvider(object):
                                 'Auth user %s with %s email but user %s'
                                 'already have same email' % (
                                     user_id,
-                                    mail,
+                                    mail.lower(),
                                     user_id_by_threepid
                                 )
                             )

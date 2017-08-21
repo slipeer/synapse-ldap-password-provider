@@ -64,6 +64,12 @@ Account Lockout Policy
 If you do not want your internal users to be blocked from outside by scrambling passwords through this service, then you need 
 implement a more rigid account lockout policy then on your LDAP server.
 
+Case Sensitivity
+----------------
+In most LDAP realizations login and email is case insensitive. But in matrix-org/synapse code matrixId and login is case sensitive (so user with login ``User`` can't auth with login ``USer``)
+My sydent fork https://github.com/slipeer/sydent returns mxid from LDAP reduced to lower case. This ldap_auth_provider also reduce user_id and email (i gues that phone number sonsist only froom digits) to lower case.
+For this to work properly, it only remains apply to matrix-org/synapse patch `<synapse.login_symbol_case_tolower.diff>`_
+
 
 Troubleshooting and Debugging
 -----------------------------
