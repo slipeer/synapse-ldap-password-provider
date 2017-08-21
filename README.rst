@@ -90,7 +90,7 @@ to your Synapse server's logging configuration file:
       # [...]
       ldap3:
         level: DEBUG
-      synapse_ldap_password_provider:
+      ldap:
         level: DEBUG
 
 Finally, restart your Synapse server for the changes to take effect:

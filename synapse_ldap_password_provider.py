@@ -18,7 +18,7 @@ import logging
 import time
 
 __version__ = '1'
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('ldap')
 
 try:
     import ldap3
