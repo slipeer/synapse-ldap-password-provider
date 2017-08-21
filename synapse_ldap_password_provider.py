@@ -274,7 +274,7 @@ class LDAPPasswordProvider(object):
                 logger.info(
                     'Auth based on LDAP data was successful: '
                     '%s: %s (%s, %s)',
-                    user_id, localpart, name, mail
+                    user_id, localpart, mail
                 )
                 if localpart in self.bad_login_attemps:
                     del self.bad_login_attemps[localpart]
