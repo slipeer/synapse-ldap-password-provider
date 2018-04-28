@@ -203,10 +203,10 @@ class LDAPPasswordProvider(object):
                 attrs = responses[0]['attributes']
                 try:
                     name = attrs[self.ldap_attributes['name']][0]
-                except:
+                except BaseException:
                     name = None
 
-                store = self.account_handler.hs.get_handlers().profile_handler.store
+                store = yield self.account_handler.hs.get_datastore()
                 if not (yield self.account_handler.check_user_exists(user_id)):
                     # Create account if not exists
                     user_id, access_token = (
