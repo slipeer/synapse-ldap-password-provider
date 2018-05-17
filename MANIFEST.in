@@ -4,4 +4,5 @@ include *.rst
 include LICENSE
 include tox.ini
 include requirements.txt
+include *.diff
 recursive-include tests *.py
