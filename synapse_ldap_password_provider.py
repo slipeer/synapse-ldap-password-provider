@@ -233,12 +233,11 @@ class LDAPPasswordProvider(object):
                 attrs = responses[0]['attributes']
                 try:
                     name = attrs[self.ldap_attributes['name']][0]
-                except:
+                except Exception:
                     name = None
 
                 store = self.account_handler.hs.get_profile_handler().store
                 users = yield store.get_users_by_id_case_insensitive(user_id)
-                #if not (yield self.account_handler.check_user_exists(user_id)):
                 if not users:
                     # Create account if not exists
                     logger.info(
