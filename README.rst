@@ -2,8 +2,10 @@ Synapse LDAP pasword provider
 =============================
 
 - Allows synapse to use LDAP database as a password provider.
-- Allows to map mail and msisdn (phone) from LDAP (check usage note!)
+- Allows to map mail and msisdn (phone) from LDAP (check usage note!). May be used in mxisd SynapseSQL backend.
 - Allows implementing independent account lockout policy, to prevent Active Directory users locking by external bruteforce attack.
+- Supports unicode characters in ldap DistinguishedName attributes
+- Compatible with synapse 0.29.x
 
 Travis-CI Build Status
 ======================
@@ -57,7 +59,8 @@ Usage note
 ----------
 
 Use attributes ``mail`` and ``msisdn`` from the LDAP only if your identity server is also integrated with LDAP and looks for 3pd in these attributes.
-Otherwise it will not work properly. If you seach identity server with LDAP integration you can try my sydent fork https://github.com/slipeer/sydent
+Otherwise it will not work properly. If you seach identity server with LDAP integration you can try mxisd https://github.com/kamax-io/mxisd 
+but unfortunately in has terribly slow implementation of bulk lookup for LDAP, do not cache queries and has no implementation for bulk_lookup for SQL backend.
 
 Account Lockout Policy
 ----------------------
@@ -67,8 +70,8 @@ implement a more rigid account lockout policy then on your LDAP server.
 Case Sensitivity
 ----------------
 In most LDAP realizations login and email is case insensitive. But in matrix-org/synapse code matrixId and login is case sensitive (so user with login ``User`` can't auth with login ``USer``)
-My sydent fork https://github.com/slipeer/sydent returns mxid from LDAP reduced to lower case. This ldap_auth_provider also reduce user_id and email (i gues that phone number sonsist only froom digits) to lower case.
-For this to work properly, it only remains apply to matrix-org/synapse patch `<synapse.login_symbol_case_tolower.diff>`_
+This ldap_auth_provider reduce user_id and email (i gues that phone number sonsist only froom digits) to lower case.
+For this to work properly you may need to patch matrix-org/synapse with `<synapse.login_symbol_case_tolower.diff>`_
 
 
 Troubleshooting and Debugging

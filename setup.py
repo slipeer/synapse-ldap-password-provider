@@ -25,18 +25,17 @@ def read(fname):
 
 setup(
     name="synapse_ldap_password_provider",
-    version="1",
+    version="3",
     py_modules=["synapse_ldap_password_provider"],
     description="LDAP3 password provider for Synapse",
     url="https://github.com/slipeer/synapse-ldap-password-provider",
     download_url="https://github.com/"
-        "slipeer/synapse-ldap-password-provider/archive/1.0.tar.gz",
+        "slipeer/synapse-ldap-password-provider/archive/master.tar.gz",
     author="Slipeer",
     author_email="slipeer@gmail.com",
     install_requires=[
         "Twisted>=15.1.0",
         "ldap3>=2",
-        "service_identity",
     ],
     long_description=read("README.rst"),
     classifiers=[

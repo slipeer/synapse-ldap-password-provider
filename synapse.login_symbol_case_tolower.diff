@@ -1,0 +1,35 @@
+diff -x '*.pyc' -Nur ./synapse.orig/handlers/auth.py ./synapse/handlers/auth.py
+--- ./synapse.orig/handlers/auth.py	2018-04-16 10:41:53.159866443 +0300
++++ ./synapse/handlers/auth.py	2018-04-16 10:48:20.773714776 +0300
+@@ -354,6 +354,8 @@
+             SynapseError if there was a problem with the request
+             LoginError if there was an authentication problem.
+         """
++        if 'user' in authdict:
++            authdict['user'] = authdict['user'].lower()
+         login_type = authdict['type']
+         checker = self.checkers.get(login_type)
+         if checker is not None:
+@@ -517,6 +519,7 @@
+         Raises:
+             StoreError if there was a problem storing the token.
+         """
++        user_id = user_id.lower()
+         logger.info("Logging in user %s on device %s", user_id, device_id)
+         access_token = yield self.issue_access_token(user_id, device_id)
+ 
+diff -x '*.pyc' -Nur ./synapse.orig/rest/client/v1/login.py ./synapse/rest/client/v1/login.py
+--- ./synapse.orig/rest/client/v1/login.py	2018-04-16 10:41:53.164866505 +0300
++++ ./synapse/rest/client/v1/login.py	2018-04-16 10:59:39.511216824 +0300
+@@ -169,6 +169,11 @@
+         # Log the request we got, but only certain fields to minimise the chance of
+         # logging someone's password (even if they accidentally put it in the wrong
+         # field)
++        if 'identifier' in login_submission:
++            if 'user' in login_submission['identifier']:
++                login_submission['identifier']['user'] = login_submission['identifier']['user'].lower()
++        if 'user' in login_submission:
++            login_submission['user'] = login_submission['user'].lower()
+         logger.info(
+             "Got login request with identifier: %r, medium: %r, address: %r, user: %r",
+             login_submission.get('identifier'),

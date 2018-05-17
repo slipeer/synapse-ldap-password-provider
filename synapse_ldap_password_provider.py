@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 Slipeer <slipeer@gmail.com>
+# Copyright 2018 Pavel Kardash <pavel@kardash.su>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,11 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import unicode_literals
+from synapse.types import UserID
 from twisted.internet import defer, threads
+from synapse.api.constants import LoginType
 import logging
 import time
 
-__version__ = '1'
+__version__ = '3'
 logger = logging.getLogger('ldap')
 
 try:
@@ -31,6 +34,7 @@ try:
 
     try:
         ldap3.set_config_parameter('DEFAULT_ENCODING', 'UTF-8')
+        ldap3.set_config_parameter('ADDITIONAL_ENCODINGS', ['cp1251', 'koi8-r', 'latin1'])
     except AttributeError:
         pass
     except ldap3.core.exceptions.LDAPConfigurationParameterError:
@@ -42,7 +46,7 @@ except ImportError:
 
 
 class LDAPPasswordProvider(object):
-    __version__ = '1'
+    __version__ = '3'
 
     def __init__(self, config, account_handler):
         self.account_handler = account_handler
@@ -71,18 +75,51 @@ class LDAPPasswordProvider(object):
             self.ldap_alp = config.account_lockout_policy
         self.bad_login_attemps = {}
 
+    def get_supported_login_types(self):
+        """ Returns suported login types """
+        return {LoginType.PASSWORD: (u"password",)}
+
     @defer.inlineCallbacks
-    def check_password(self, user_id, password):
+    def check_auth(self, username, login_type, login_dict):
+        """ check auth for supported login type """
+        if login_type not in self.get_supported_login_types().keys():
+            logger.error(
+                'Unsupported login type \"%s\" for user \"%s\" auth.' %
+                (login_type, username)
+            )
+            yield defer.returnValue(None)
+        auth = yield self.check_passwd(username, login_dict['password'])
+        if not username.startswith('@'):
+            username = UserID(
+                username,
+                self.account_handler.hs.hostname
+            ).to_string()
+        if auth:
+            logger.info(
+                'SUCCES user \"%s\" auth with login_type \"%s\"' %
+                (username, login_type)
+            )
+            yield defer.returnValue((username, None))
+
+        logger.warn(
+            'FAILED user \"%s\" auth with login_type \"%s\"' %
+            (username, login_type)
+        )
+        yield defer.returnValue(None)
+
+    @defer.inlineCallbacks
+    def check_passwd(self, user_id, password):
         """ Authenticate a user against an LDAP Server
             and register an account if none exists.
 
             Returns:
                 True if authentication against LDAP was successful
         """
-        if not password:
-            defer.returnValue(False)
-        user_id = user_id.lower()
-        localpart = user_id.split(":", 1)[0][1:]
+        if user_id.startswith("@"):
+            localpart = user_id.split(":", 1)[0][1:]
+        else:
+            localpart = user_id
+            user_id = UserID(localpart, self.account_handler.hs.hostname).to_string()
 
         now = time.time()
         if localpart in self.bad_login_attemps.keys():
@@ -137,9 +174,8 @@ class LDAPPasswordProvider(object):
                 )
                 logger.debug(
                     'LDAP auth method authenticated search returned: '
-                    '%s (conn: %s)',
-                    result,
-                    conn
+                    '%s ',
+                    result
                 )
                 if not result:
                     if self.ldap_alp_exists:
@@ -157,14 +193,8 @@ class LDAPPasswordProvider(object):
                     'Invalid LDAP mode specified: {%s}' %
                     self.ldap_mode
                 )
-            # ???
-            try:
-                logger.info(
-                    'User authenticated against LDAP server: %s',
-                    conn
-                )
-            except NameError:
-                logger.warning(
+            if not conn:
+                logger.error(
                     'Authentication method yielded no LDAP connection, '
                     'aborting!'
                 )
@@ -206,16 +236,27 @@ class LDAPPasswordProvider(object):
                 except:
                     name = None
 
-                store = self.account_handler.hs.get_handlers().profile_handler.store
-                if not (yield self.account_handler.check_user_exists(user_id)):
+                store = self.account_handler.hs.get_profile_handler().store
+                users = yield store.get_users_by_id_case_insensitive(user_id)
+                #if not (yield self.account_handler.check_user_exists(user_id)):
+                if not users:
                     # Create account if not exists
+                    logger.info(
+                        'FIRST login for user %s' %
+                        user_id
+                    )
                     user_id, access_token = (
                         yield self.account_handler.register(localpart=localpart)
                     )
 
                 if name is not None:
                     # Update user Display Name
-                    yield store.set_profile_displayname(localpart, name)
+                    store.set_profile_displayname(localpart, name)
+                    profile = yield store.get_profileinfo(localpart)
+                    user_dir_handler = self.account_handler.hs.get_user_directory_handler()
+                    yield user_dir_handler.handle_local_profile_change(
+                        user_id, profile
+                    )
 
                 if 'mail' in self.ldap_attributes:
                     for mail in attrs[self.ldap_attributes['mail']]:
@@ -223,11 +264,11 @@ class LDAPPasswordProvider(object):
                         validated_at = self.account_handler.hs.get_clock().time_msec()
                         user_id_by_threepid = yield store.get_user_id_by_threepid(
                             'email',
-                            mail.lower()
+                            mail
                         )
                         # add email only if not exists
                         if not user_id_by_threepid:
-                            yield store.user_add_threepid(
+                            store.user_add_threepid(
                                 user_id,
                                 'email',
                                 mail,
@@ -239,7 +280,7 @@ class LDAPPasswordProvider(object):
                                 'Auth user %s with %s email but user %s'
                                 'already have same email' % (
                                     user_id,
-                                    mail.lower(),
+                                    mail,
                                     user_id_by_threepid
                                 )
                             )
@@ -254,7 +295,7 @@ class LDAPPasswordProvider(object):
                         )
                         # add msisdn only if not exists
                         if not user_id_by_threepid:
-                            yield store.user_add_threepid(
+                            store.user_add_threepid(
                                 user_id,
                                 'msisdn',
                                 msisdn,
@@ -273,8 +314,8 @@ class LDAPPasswordProvider(object):
 
                 logger.info(
                     'Auth based on LDAP data was successful: '
-                    '%s: %s (%s, %s)',
-                    user_id, localpart, mail
+                    '%s: %s (%s)',
+                    user_id, localpart, name
                 )
                 if localpart in self.bad_login_attemps:
                     del self.bad_login_attemps[localpart]
@@ -351,6 +392,8 @@ class LDAPPasswordProvider(object):
         else:
             ldap_config.account_lockout_policy_exists = False
 
+        ldap_config.gprefix = config.get('group_prefix', '')
+
         return ldap_config
 
     @defer.inlineCallbacks
@@ -373,8 +416,7 @@ class LDAPPasswordProvider(object):
                 read_only=True,
             )
             logger.debug(
-                'LDAP connection in simple bind mode: %s',
-                conn
+                'LDAP connection in simple bind mode.'
             )
 
             if self.ldap_start_tls:
@@ -382,8 +424,7 @@ class LDAPPasswordProvider(object):
                 yield threads.deferToThread(conn.start_tls)
                 logger.debug(
                     'Upgraded LDAP connection in simple bind mode through '
-                    'StartTLS: %s',
-                    conn
+                    'StartTLS'
                 )
 
             if (yield threads.deferToThread(conn.bind)):
